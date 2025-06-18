@@ -1,0 +1,5 @@
+<div {{ if .Class }}class="{{ .Class }}"{{ end }}>
+  {{ range .Elements }}
+    {{ element . }}
+  {{ end }}
+</div>

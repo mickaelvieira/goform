@@ -1,0 +1,13 @@
+<div>
+  {{ if .Label }}
+  <label for="{{ .Id }}">
+    {{ .Label }}{{ if .IsRequired }} *{{ end }}
+  </label>
+  {{ end }}
+  <div>
+    <textarea {{ attributes .Attributes }}>
+      {{ .Value }}
+    </textarea>
+    {{ .RenderError }}
+  </div>
+</div>

@@ -1,0 +1,18 @@
+{{ $value := .Value }}
+<div>
+  {{ if .Label }}
+  <label for="{{ .Id }}">
+    {{ .Label }}{{ if .IsRequired }} *{{ end }}
+  </label>
+  {{ end }}
+  <div>
+    <select {{ attributes .Attributes }}>
+      {{ range .Options }}
+      <option value="{{ .Value }}" {{ if eq .Value $value }}selected{{ end }}>
+        {{ .Label }}
+      </option>
+      {{ end }}
+    </select>
+    {{ .RenderError }}
+  </div>
+</div>

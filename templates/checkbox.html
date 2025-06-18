@@ -1,0 +1,11 @@
+<div>
+  <label for="{{ .Id }}">
+    <input {{ attributes .Attributes }} />
+    {{ if .Label }}
+      <span>
+        {{ .Label }}{{ if .IsRequired }} *{{ end }}
+      </span>
+    {{ end }}
+  </label>
+  {{ .RenderError }}
+</div>
