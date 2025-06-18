@@ -2,7 +2,6 @@
   {{ if .Options }}
     {{ $id := .Id }}
     {{ $name := .Name }}
-    {{ $attributes := .Attributes }}
     {{ range $index, $element := .Options }}
     <label for="{{ $id }}-{{ $index }}">
       <input type="radio" id="{{ $id }}-{{ $index }}" name="{{ $name }}" value="{{ $element.Value }}" />
@@ -13,7 +12,7 @@
     {{ end }}
   {{ else }}
   <label for="{{ .Id }}">
-    <input {{ attributes .Attributes }} />
+    <input{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
     {{ if .Label }}
       <span>
         {{ .Label }}{{ if .IsRequired }} *{{ end }}
@@ -22,4 +21,5 @@
   </label>
   {{ end }}
   {{ .RenderError }}
+  {{ .RenderHint }}
 </div>

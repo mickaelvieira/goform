@@ -1,39 +1,45 @@
-package goforms
+package goform
 
 import (
 	"html/template"
 )
 
-func Group(elements ...Element) *group {
+func Group(children ...Renderer) *group {
+	if children == nil {
+		children = []Renderer{}
+	}
+
 	return &group{
-		elements: elements,
-		template: parseTemplates(),
+		children:   children,
+		attributes: Attributes(),
+		renderer:   getTemplateRenderer(),
 	}
 }
 
 type group struct {
-	class    string
-	template TemplateRenderer
-	elements []Element
+	class      string
+	children   []Renderer
+	attributes Attrs
+	renderer   TemplateRenderer
 }
 
-func (f *group) SetClass(class string) *group {
-	f.class = class
-	return f
+func (g *group) SetAttributes(modifiers ...attrModifier) *group {
+	for _, mod := range modifiers {
+		mod(g.attributes)
+	}
+	return g
 }
 
-func (f *group) Children() []Element {
-	return f.elements
+func (g *group) Attributes() Attrs {
+	return g.attributes
 }
 
-func (f *group) Render() template.HTML {
-	return f.template.Render("group.html", struct {
-		Class    string
-		Elements []Element
-	}{
-		Class:    f.class,
-		Elements: f.elements,
-	})
+func (g *group) Children() []Renderer {
+	return g.children
+}
+
+func (g *group) Render() template.HTML {
+	return g.renderer.Render("group.tmpl", g)
 }
 
 var _ Container = (*group)(nil)

@@ -1,23 +1,21 @@
-package goforms
+package goform
 
 import (
 	"html/template"
 	"testing"
-
-	"github.com/mickaelvieira/goforms/attr"
 )
 
 func TestGroup_Creation(t *testing.T) {
 	t.Run("empty group", func(t *testing.T) {
 		g := Group()
 
-		if len(g.elements) != 0 {
-			t.Errorf("expected 0 elements, got %d", len(g.elements))
+		if len(g.children) != 0 {
+			t.Errorf("expected 0 elements, got %d", len(g.children))
 		}
 		if g.class != "" {
 			t.Errorf("expected empty class, got %s", g.class)
 		}
-		if g.template == nil {
+		if g.renderer == nil {
 			t.Error("expected template to be initialized")
 		}
 	})
@@ -26,10 +24,10 @@ func TestGroup_Creation(t *testing.T) {
 		textField := Text("username")
 		g := Group(textField)
 
-		if len(g.elements) != 1 {
-			t.Errorf("expected 1 element, got %d", len(g.elements))
+		if len(g.children) != 1 {
+			t.Errorf("expected 1 element, got %d", len(g.children))
 		}
-		if g.elements[0] != textField {
+		if g.children[0] != textField {
 			t.Error("expected first element to be the text field")
 		}
 	})
@@ -41,83 +39,19 @@ func TestGroup_Creation(t *testing.T) {
 
 		g := Group(usernameField, emailField, passwordField)
 
-		if len(g.elements) != 3 {
-			t.Errorf("expected 3 elements, got %d", len(g.elements))
+		if len(g.children) != 3 {
+			t.Errorf("expected 3 elements, got %d", len(g.children))
 		}
 
 		// Check elements are in correct order
-		if g.elements[0] != usernameField {
+		if g.children[0] != usernameField {
 			t.Error("expected first element to be username field")
 		}
-		if g.elements[1] != emailField {
+		if g.children[1] != emailField {
 			t.Error("expected second element to be email field")
 		}
-		if g.elements[2] != passwordField {
+		if g.children[2] != passwordField {
 			t.Error("expected third element to be password field")
-		}
-	})
-}
-
-func TestGroup_SetClass(t *testing.T) {
-	t.Run("set class on empty group", func(t *testing.T) {
-		g := Group()
-		result := g.SetClass("form-group")
-
-		if g.class != "form-group" {
-			t.Errorf("expected class=form-group, got %s", g.class)
-		}
-		if result != g {
-			t.Error("SetClass should return the same group instance")
-		}
-	})
-
-	t.Run("set class on group with elements", func(t *testing.T) {
-		textField := Text("test")
-		g := Group(textField)
-		result := g.SetClass("input-group")
-
-		if g.class != "input-group" {
-			t.Errorf("expected class=input-group, got %s", g.class)
-		}
-		if result != g {
-			t.Error("SetClass should return the same group instance")
-		}
-	})
-
-	t.Run("override existing class", func(t *testing.T) {
-		g := Group().SetClass("old-class")
-		result := g.SetClass("new-class")
-
-		if g.class != "new-class" {
-			t.Errorf("expected class=new-class, got %s", g.class)
-		}
-		if result != g {
-			t.Error("SetClass should return the same group instance")
-		}
-	})
-
-	t.Run("set empty class", func(t *testing.T) {
-		g := Group().SetClass("some-class")
-		result := g.SetClass("")
-
-		if g.class != "" {
-			t.Errorf("expected empty class, got %s", g.class)
-		}
-		if result != g {
-			t.Error("SetClass should return the same group instance")
-		}
-	})
-
-	t.Run("set class with whitespace", func(t *testing.T) {
-		g := Group()
-		result := g.SetClass("  form-group  ")
-
-		// Class should preserve whitespace as provided
-		if g.class != "  form-group  " {
-			t.Errorf("expected class with whitespace preserved, got %s", g.class)
-		}
-		if result != g {
-			t.Error("SetClass should return the same group instance")
 		}
 	})
 }
@@ -182,7 +116,7 @@ func TestGroup_Render(t *testing.T) {
 	})
 
 	t.Run("render group with class", func(t *testing.T) {
-		g := Group().SetClass("form-group")
+		g := Group().SetAttributes(Attr("class", "test-group"))
 		result := g.Render()
 
 		if result == template.HTML("") {
@@ -193,23 +127,16 @@ func TestGroup_Render(t *testing.T) {
 		if htmlStr == "" {
 			t.Error("expected non-empty HTML string")
 		}
-
-		// Should contain the class (depending on template implementation)
-		// Note: This test might need adjustment based on actual template content
 	})
 
 	t.Run("render group with elements", func(t *testing.T) {
-		textField := Text("username", attr.Attr("placeholder", "Enter username"))
-		emailField := Email("email", attr.Required(true))
+		textField := Text("username").SetAttributes(Attr("placeholder", "Enter username"))
+		emailField := Email("email").SetAttributes(Required(true))
 
-		g := Group(textField, emailField).SetClass("user-fields")
-		result := g.Render()
+		g := Group(textField, emailField).
+			SetAttributes(Attr("class", "user-fields"))
 
-		if result == template.HTML("") {
-			t.Error("expected non-empty render result")
-		}
-
-		htmlStr := string(result)
+		htmlStr := cleanHTML(g.Render())
 		if htmlStr == "" {
 			t.Error("expected non-empty HTML string")
 		}
@@ -240,14 +167,14 @@ func TestGroup_ComplexScenarios(t *testing.T) {
 			checkboxField,
 			selectField,
 			textareaField,
-		).SetClass("complete-form")
+		).SetAttributes(Attr("class", "complete-form"))
 
 		if len(g.Children()) != 6 {
 			t.Errorf("expected 6 children, got %d", len(g.Children()))
 		}
 
-		if g.class != "complete-form" {
-			t.Errorf("expected class=complete-form, got %s", g.class)
+		if g.Attributes().Get("class") != "complete-form" {
+			t.Errorf("expected class=complete-form, got %s", g.Attributes().Get("class"))
 		}
 
 		// Verify each element type
@@ -273,35 +200,41 @@ func TestGroup_ComplexScenarios(t *testing.T) {
 	})
 
 	t.Run("group with configured elements", func(t *testing.T) {
-		usernameField := Text("username",
-			attr.Required(true),
-			attr.Attr("placeholder", "Enter username"),
-			attr.Attr("class", "form-control"),
-		).SetLabel("Username").SetHint("Must be unique")
+		usernameField := Text("username").
+			SetAttributes(
+				Required(true),
+				Attr("placeholder", "Enter username"),
+				Attr("class", "form-control"),
+			).
+			SetLabel("Username").
+			SetHint("Must be unique")
 
-		emailField := Email("email",
-			attr.Required(true),
-			attr.Attr("placeholder", "Enter email"),
-		).SetLabel("Email Address").SetError("Invalid email format")
+		emailField := Email("email").
+			SetAttributes(
+				Required(true),
+				Attr("placeholder", "Enter email"),
+			).
+			SetLabel("Email Address").
+			SetError("Invalid email format")
 
-		g := Group(usernameField, emailField).SetClass("user-info")
+		g := Group(usernameField, emailField).SetAttributes(Attr("class", "user-info"))
 
 		children := g.Children()
 		if len(children) != 2 {
 			t.Errorf("expected 2 children, got %d", len(children))
 		}
 
-		if g.class != "user-info" {
-			t.Errorf("expected class=user-info, got %s", g.class)
+		if g.Attributes().Get("class") != "user-info" {
+			t.Errorf("expected class=user-info, got %s", g.Attributes().Get("class"))
 		}
 
 		// Check first element configuration
 		firstElem := children[0].(*element)
-		if firstElem.Label != "Username" {
-			t.Errorf("expected first element label=Username, got %s", firstElem.Label)
+		if firstElem.label != "Username" {
+			t.Errorf("expected first element label=Username, got %s", firstElem.label)
 		}
-		if firstElem.Hint != "Must be unique" {
-			t.Errorf("expected first element hint=Must be unique, got %s", firstElem.Hint)
+		if firstElem.hint != "Must be unique" {
+			t.Errorf("expected first element hint=Must be unique, got %s", firstElem.hint)
 		}
 		if !firstElem.IsRequired() {
 			t.Error("expected first element to be required")
@@ -309,11 +242,11 @@ func TestGroup_ComplexScenarios(t *testing.T) {
 
 		// Check second element configuration
 		secondElem := children[1].(*element)
-		if secondElem.Label != "Email Address" {
-			t.Errorf("expected second element label=Email Address, got %s", secondElem.Label)
+		if secondElem.label != "Email Address" {
+			t.Errorf("expected second element label=Email Address, got %s", secondElem.label)
 		}
-		if secondElem.Error != "Invalid email format" {
-			t.Errorf("expected second element error=Invalid email format, got %s", secondElem.Error)
+		if secondElem.error != "Invalid email format" {
+			t.Errorf("expected second element error=Invalid email format, got %s", secondElem.error)
 		}
 		if !secondElem.IsRequired() {
 			t.Error("expected second element to be required")
@@ -352,7 +285,7 @@ func TestGroup_ContainerInterface(t *testing.T) {
 
 func TestGroup_ElementOrder(t *testing.T) {
 	t.Run("maintains element order", func(t *testing.T) {
-		elements := []Element{
+		elements := []Renderer{
 			Text("field1"),
 			Email("field2"),
 			Password("field3"),
@@ -405,11 +338,11 @@ func TestGroup_Chaining(t *testing.T) {
 		emailField := Email("email")
 
 		g := Group(textField, emailField).
-			SetClass("user-form").
-			SetClass("updated-class") // Test overriding
+			SetAttributes(Attr("class", "user-form")).
+			SetAttributes(Attr("class", "updated-class")) // Test overriding
 
-		if g.class != "updated-class" {
-			t.Errorf("expected class=updated-class, got %s", g.class)
+		if g.Attributes().Get("class") != "updated-class" {
+			t.Errorf("expected class=updated-class, got %s", g.Attributes().Get("class"))
 		}
 
 		if len(g.Children()) != 2 {
@@ -429,14 +362,14 @@ func TestGroup_ClassHandling(t *testing.T) {
 		{"class with special characters", "form-group_v2", "form-group_v2"},
 		{"empty class", "", ""},
 		{"class with unicode", "表单组", "表单组"},
-		{"class with leading/trailing spaces", "  form-group  ", "  form-group  "},
+		{"class with leading/trailing spaces", "  form-group  ", "form-group"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := Group().SetClass(tt.class)
-			if g.class != tt.expected {
-				t.Errorf("expected class=%s, got %s", tt.expected, g.class)
+			g := Group().SetAttributes(Attr("class", tt.class))
+			if g.Attributes().Get("class") != tt.expected {
+				t.Errorf("expected class=%s, got %s", tt.expected, g.Attributes().Get("class"))
 			}
 		})
 	}

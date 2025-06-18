@@ -1,13 +1,10 @@
-package goforms
+package goform
 
 import (
 	"html/template"
-	"maps"
 	"net/http"
 	"reflect"
-	"slices"
-
-	"github.com/mickaelvieira/goforms/attr"
+	"strings"
 )
 
 const (
@@ -15,93 +12,79 @@ const (
 	URLEncodedData = "application/x-www-form-urlencoded"
 )
 
-type Element interface {
-	Renderer
-	ErrorRenderer
-	Name() string
-	IsValid() bool
-	SetValue(string)
-	MarkAsInvalid()
-}
-
 type Container interface {
-	Children() []Element
-}
-
-// FormChild represents anything that can be added to a form
-type FormChild interface {
-	Renderer
-}
-
-type FormOptions struct {
-	method  string
-	enctype string
-}
-
-type modifiers func(*FormOptions)
-
-func Multipart() modifiers {
-	return func(o *FormOptions) {
-		o.enctype = MultipartData
-	}
-}
-
-func WithGetMethod() modifiers {
-	return func(o *FormOptions) {
-		o.method = http.MethodGet
-	}
+	Children() []Renderer
 }
 
 type form struct {
-	template   TemplateRenderer
-	elements   []Renderer
-	attributes attr.Attrs
+	error      string
+	children   []Renderer
+	renderer   TemplateRenderer
+	attributes Attrs
 }
 
-func Form(elements ...Renderer) *form {
+func Form() *form {
 	f := &form{
-		elements: make([]Renderer, 0),
-		template: parseTemplates(),
-		attributes: attr.Attributes(
-			attr.Attr("id", attr.GenId()),
-			attr.Attr("method", http.MethodPost),
-			attr.Attr("enctype", URLEncodedData),
+		children: make([]Renderer, 0),
+		renderer: getTemplateRenderer(),
+		attributes: Attributes(
+			Attr("id", GenId()),
+			Attr("method", http.MethodPost),
+			Attr("enctype", URLEncodedData),
 		),
-	}
-
-	if elements == nil {
-		elements = make([]Renderer, 0)
-	}
-
-	for _, el := range elements {
-		if el == nil {
-			continue
-		}
-		f.elements = append(f.elements, el)
 	}
 
 	return f
 }
 
-func (f *form) SetAttributes(modifiers ...attr.Modifier) *form {
+func (f *form) Id() string {
+	return f.attributes.String("id")
+}
+
+func (f *form) SetError(value string) *form {
+	f.error = strings.TrimSpace(value)
+	return f
+}
+
+func (f *form) Error() string {
+	return f.error
+}
+
+func (f *form) SetAttributes(modifiers ...attrModifier) *form {
 	for _, mod := range modifiers {
 		mod(f.attributes)
 	}
 	return f
 }
 
-func (f *form) AddElements(elements ...Renderer) *form {
-	f.elements = append(f.elements, elements...)
+func (f *form) Attributes() Attrs {
+	return f.attributes
+}
+
+func (f *form) AddChildren(children ...Renderer) *form {
+	for _, c := range children {
+		if c != nil {
+			f.children = append(f.children, c)
+		}
+	}
 	return f
 }
 
+func (f *form) Children() []Renderer {
+	return f.children
+}
+
 func (f *form) Render() template.HTML {
-	return f.template.Render("form.html", struct {
-		Attributes attr.Attrs
-		Elements   []Renderer
+	return f.renderer.Render("form.tmpl", f)
+}
+
+func (f *form) RenderError() template.HTML {
+	return f.renderer.Render("error.tmpl", struct {
+		Id    string
+		Error string
 	}{
-		Attributes: f.attributes,
-		Elements:   f.elements,
+		Id:    f.Id(),
+		Error: f.error,
 	})
 }
 
@@ -109,12 +92,12 @@ func (f *form) Populate(obj any) *form {
 	t := reflect.TypeOf(obj)
 	v := reflect.ValueOf(obj)
 
-	elements := f.children()
+	elements := f.Elements()
 
 	for i := range t.NumField() {
 		field := t.Field(i)
 		value := v.Field(i).String()
-		name := field.Tag.Get("goforms")
+		name := field.Tag.Get("goform")
 
 		element, ok := elements[name]
 		if ok {
@@ -131,22 +114,19 @@ func (f *form) Populate(obj any) *form {
 	return f
 }
 
-func (f *form) Children() []Element {
-	c := f.children()
-	if len(c) == 0 {
-		return make([]Element, 0)
-	}
-	return slices.Collect(maps.Values(c))
-}
-
-func (f *form) children() map[string]Element {
+func (f *form) Elements() map[string]Element {
 	elements := make(map[string]Element)
 
-	for _, el := range f.elements {
+	for _, el := range f.children {
 		switch el := el.(type) {
 		case Container:
-			for _, ch := range el.Children() {
-				elements[ch.Name()] = ch
+			// @TODO we should handle nested containers
+			for _, c := range el.Children() {
+				e, ok := c.(Element)
+				if !ok {
+					continue
+				}
+				elements[e.Name()] = e
 			}
 		case Element:
 			elements[el.Name()] = el

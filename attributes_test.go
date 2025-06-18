@@ -1,4 +1,4 @@
-package attr
+package goform
 
 import (
 	"strings"
@@ -106,6 +106,22 @@ func TestNewModifier_AriaAttributes(t *testing.T) {
 			value: "test",
 			expected: map[string]any{
 				"aria-label": "test",
+			},
+		},
+		{
+			name:  "boolean remove attribute",
+			attr:  "aria-hidden",
+			value: false,
+			expected: map[string]any{
+				"aria-hidden": false,
+			},
+		},
+		{
+			name:  "aria attribute case insensitive",
+			attr:  "aria-label",
+			value: "",
+			expected: map[string]any{
+				"aria-label": "",
 			},
 		},
 	}
@@ -241,8 +257,8 @@ func TestNewModifier_UnsupportedType(t *testing.T) {
 			panicMsg, ok := r.(string)
 			if !ok {
 				t.Error("expected panic to be a string")
-			} else if !strings.Contains(panicMsg, "unsupported type") {
-				t.Errorf("expected panic message to contain 'unsupported type', got: %s", panicMsg)
+			} else if !strings.Contains(panicMsg, "unsupported attribute class type") {
+				t.Errorf("expected panic message to contain 'unsupported attribute class type', got: %s", panicMsg)
 			}
 		}
 	}()
@@ -403,11 +419,11 @@ func TestGenId(t *testing.T) {
 	id1 := GenId()
 	id2 := GenId()
 
-	if len(id1) != 8 {
-		t.Errorf("expected id length 8, got %d", len(id1))
+	if len(id1) != 10 {
+		t.Errorf("expected id length 10, got %d", len(id1))
 	}
-	if len(id2) != 8 {
-		t.Errorf("expected id length 8, got %d", len(id2))
+	if len(id2) != 10 {
+		t.Errorf("expected id length 10, got %d", len(id2))
 	}
 	// Note: There's a small chance they could be the same, but very unlikely
 	if id1 == id2 {

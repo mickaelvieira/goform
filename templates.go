@@ -1,4 +1,4 @@
-package goforms
+package goform
 
 import (
 	"embed"
@@ -55,41 +55,42 @@ func (tr *templateRenderer) render(t *template.Template, data any) template.HTML
 	return template.HTML(buf.String())
 }
 
-var parseTemplates = sync.OnceValue(func() *templateRenderer {
-	fn := template.FuncMap{
-		"attributes": attributesRenderer(),
-		"element":    elementRenderer(),
-	}
+var getTemplateRenderer = sync.OnceValue(
+	func() *templateRenderer {
+		fn := template.FuncMap{
+			"form_attributes": attributesRenderer(),
+			"form_component":  componentRenderer(),
+		}
 
-	t, err := template.New("base").
-		Funcs(fn).
-		ParseFS(templateFS, "templates/*.html")
-
-	if err != nil {
-		panic(err)
-	}
-
-	r := &templateRenderer{
-		base: t,
-	}
-
-	if templatesOptions != nil {
-		t, err := template.New("override").
+		t, err := template.New("base").
 			Funcs(fn).
-			ParseFS(
-				templatesOptions.filesystem,
-				templatesOptions.patterns...,
-			)
+			ParseFS(templateFS, "templates/*.tmpl")
 
 		if err != nil {
 			panic(err)
 		}
 
-		r.overwrite = t
-	}
+		r := &templateRenderer{
+			base: t,
+		}
 
-	return r
-})
+		if templatesOptions != nil {
+			t, err := template.New("override").
+				Funcs(fn).
+				ParseFS(
+					templatesOptions.filesystem,
+					templatesOptions.patterns...,
+				)
+
+			if err != nil {
+				panic(err)
+			}
+
+			r.overwrite = t
+		}
+
+		return r
+	})
 
 type Renderer interface {
 	Render() template.HTML
@@ -99,15 +100,19 @@ type ErrorRenderer interface {
 	RenderError() template.HTML
 }
 
+type HintRenderer interface {
+	RenderHint() template.HTML
+}
+
 type TemplateRenderer interface {
 	Render(name string, data any) template.HTML
 }
 
 func FormRenderer() func(f Renderer) template.HTML {
-	return elementRenderer()
+	return componentRenderer()
 }
 
-func elementRenderer() func(f Renderer) template.HTML {
+func componentRenderer() func(f Renderer) template.HTML {
 	return func(f Renderer) template.HTML {
 		return f.Render()
 	}
@@ -133,16 +138,16 @@ func attributesRenderer() func(map[string]any) (template.HTMLAttr, error) {
 			switch value := value.(type) {
 			case bool:
 				if value {
-					s.WriteString(fmt.Sprintf(" %s", template.HTMLEscapeString(name)))
+					s.WriteString(fmt.Sprintf("%s ", template.HTMLEscapeString(name)))
 				}
 			case string:
 				if value != "" {
-					s.WriteString(fmt.Sprintf(` %s="%s"`, template.HTMLEscapeString(name), template.HTMLEscapeString(value)))
+					s.WriteString(fmt.Sprintf(`%s="%s" `, template.HTMLEscapeString(name), template.HTMLEscapeString(value)))
 				}
 			default:
-				s.WriteString(fmt.Sprintf(` attribute %s has an unsupported data type %T, only boolean & string are allowed`, name, value))
+				s.WriteString(fmt.Sprintf(`attribute %s has an unsupported data type %T, only boolean & string are allowed`, name, value))
 			}
 		}
-		return template.HTMLAttr(s.String()), nil
+		return template.HTMLAttr(strings.TrimSpace(s.String())), nil
 	}
 }

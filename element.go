@@ -1,11 +1,9 @@
-package goforms
+package goform
 
 import (
 	"fmt"
 	"html/template"
 	"strings"
-
-	"github.com/mickaelvieira/goforms/attr"
 )
 
 const (
@@ -39,113 +37,113 @@ const (
 	TextareaElement = "textarea"
 )
 
-var defaultModifiers = []attr.Modifier{
-	attr.Attr("aria-invalid", "false"),
-	attr.Attr("aria-required", "false"),
+var defaultModifiers = []attrModifier{
+	Attr("aria-invalid", "false"),
+	Attr("aria-required", "false"),
 }
 
 func isInputType(t string) bool {
 	return t != SelectElement && t != TextareaElement
 }
 
-func Phone(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeTel, modifiers...)
+func Phone(name string) *element {
+	return newElement(name, InputTypeTel)
 }
 
-func Number(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeNumber, modifiers...)
+func Number(name string) *element {
+	return newElement(name, InputTypeNumber)
 }
 
-func Search(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeSearch, modifiers...)
+func Search(name string) *element {
+	return newElement(name, InputTypeSearch)
 }
 
-func Url(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeUrl, modifiers...)
+func Url(name string) *element {
+	return newElement(name, InputTypeUrl)
 }
 
-func Color(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeColor, modifiers...)
+func Color(name string) *element {
+	return newElement(name, InputTypeColor)
 }
 
-func Range(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeRange, modifiers...)
+func Range(name string) *element {
+	return newElement(name, InputTypeRange)
 }
 
-func Date(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeDate, modifiers...)
+func Date(name string) *element {
+	return newElement(name, InputTypeDate)
 }
 
-func DateTimeLocal(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeDateTimeLocal, modifiers...)
+func DateTimeLocal(name string) *element {
+	return newElement(name, InputTypeDateTimeLocal)
 }
 
-func File(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeFile, modifiers...)
+func File(name string) *element {
+	return newElement(name, InputTypeFile)
 }
 
-func Checkbox(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeCheckbox, modifiers...)
+func Checkbox(name string) *element {
+	return newElement(name, InputTypeCheckbox)
 }
 
-func Radio(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeRadio, modifiers...)
+func Radio(name string) *element {
+	return newElement(name, InputTypeRadio)
 }
 
-func Hidden(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeHidden, modifiers...)
+func Hidden(name string) *element {
+	return newElement(name, InputTypeHidden)
 }
 
-func Submit(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeSubmit, modifiers...)
+func Submit(name string) *element {
+	return newElement(name, InputTypeSubmit)
 }
 
-func Button(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeButton, modifiers...)
+func Button(name string) *element {
+	return newElement(name, InputTypeButton)
 }
 
-func Reset(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeReset, modifiers...)
+func Reset(name string) *element {
+	return newElement(name, InputTypeReset)
 }
 
-func Image(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeImage, modifiers...)
+func Image(name string) *element {
+	return newElement(name, InputTypeImage)
 }
 
-func Time(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeTime, modifiers...)
+func Time(name string) *element {
+	return newElement(name, InputTypeTime)
 }
 
-func Month(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeMonth, modifiers...)
+func Month(name string) *element {
+	return newElement(name, InputTypeMonth)
 }
 
-func Week(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeWeek, modifiers...)
+func Week(name string) *element {
+	return newElement(name, InputTypeWeek)
 }
 
-func Datetime(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeDatetime, modifiers...)
+func Datetime(name string) *element {
+	return newElement(name, InputTypeDatetime)
 }
 
-func Text(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeText, modifiers...)
+func Text(name string) *element {
+	return newElement(name, InputTypeText)
 }
 
-func Email(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypeEmail, modifiers...)
+func Email(name string) *element {
+	return newElement(name, InputTypeEmail)
 }
 
-func Password(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, InputTypePassword, modifiers...)
+func Password(name string) *element {
+	return newElement(name, InputTypePassword)
 }
 
-func Textarea(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, TextareaElement, modifiers...)
+func Textarea(name string) *element {
+	return newElement(name, TextareaElement)
 }
 
-func Select(name string, modifiers ...attr.Modifier) *element {
-	return newElement(name, SelectElement, modifiers...)
+func Select(name string) *element {
+	return newElement(name, SelectElement)
 }
 
 func Option(label, value string) option {
@@ -160,27 +158,35 @@ type option struct {
 	Value string
 }
 
-type element struct {
-	renderer   TemplateRenderer
-	template   string
-	Label      string
-	Error      string
-	Hint       string
-	Attributes attr.Attrs
-	Options    []option
+type Element interface {
+	Renderer
+	HintRenderer
+	ErrorRenderer
+	Name() string
+	IsValid() bool
+	SetValue(string)
+	MarkAsInvalid()
 }
 
-func newElement(name, kind string, modifiers ...attr.Modifier) *element {
+type element struct {
+	hint       string
+	label      string
+	error      string
+	template   string
+	options    []option
+	attributes Attrs
+	renderer   TemplateRenderer
+}
+
+func newElement(name, kind string) *element {
 	t := kind
-	a := attr.Attributes()
+	a := Attributes()
 
 	if isInputType(kind) {
 		if kind == InputTypeCheckbox {
 			t = "checkbox"
 		} else if kind == InputTypeRadio {
 			t = "radio"
-		} else if kind == InputTypeSubmit {
-			t = "button"
 		} else {
 			t = "input"
 		}
@@ -188,57 +194,67 @@ func newElement(name, kind string, modifiers ...attr.Modifier) *element {
 	}
 
 	a.Set("name", name).
-		Set("id", attr.GenId())
+		Set("id", GenId())
 
 	i := &element{
 		template:   t,
-		renderer:   parseTemplates(),
-		Attributes: a,
+		renderer:   getTemplateRenderer(),
+		attributes: a,
 	}
 
 	for _, mod := range defaultModifiers {
-		mod(i.Attributes)
-	}
-
-	for _, mod := range modifiers {
-		mod(i.Attributes)
+		mod(i.attributes)
 	}
 
 	return i
 }
 
 func (e *element) Render() template.HTML {
-	return e.renderer.Render(fmt.Sprintf("%s.html", e.template), e)
+	return e.renderer.Render(fmt.Sprintf("%s.tmpl", e.template), e)
 }
 
 func (e *element) RenderError() template.HTML {
-	return e.renderer.Render("error.html", struct {
-		ID      string
-		Message string
+	return e.renderer.Render("error.tmpl", struct {
+		Id    string
+		Error string
 	}{
-		ID:      e.Id(),
-		Message: e.Error,
+		Id:    e.Id(),
+		Error: e.error,
+	})
+}
+
+func (e *element) RenderHint() template.HTML {
+	return e.renderer.Render("hint.tmpl", struct {
+		Id   string
+		Hint string
+	}{
+		Id:   e.Id(),
+		Hint: e.hint,
 	})
 }
 
 func (e *element) Id() string {
-	return e.Attributes.String("id")
+	return e.attributes.String("id")
 }
 
 func (e *element) Name() string {
-	return e.Attributes.String("name")
+	return e.attributes.String("name")
 }
 
 func (e *element) Attribute(name string) any {
-	return e.Attributes.Get(name)
+	return e.attributes.Get(name)
+}
+
+func (e *element) SetValue(value string) {
+	e.attributes.Set("value", value)
 }
 
 func (e *element) Value() string {
-	return e.Attributes.String("value")
+	return e.attributes.String("value")
 }
 
 func (e *element) IsRequired() bool {
-	return e.Attributes.Bool("required")
+	return e.attributes.Bool("required")
 }
 
 func (e *element) IsValid() bool {
@@ -253,28 +269,41 @@ func (e *element) IsValid() bool {
 }
 
 func (e *element) SetError(value string) *element {
-	e.Error = strings.TrimSpace(value)
+	e.error = strings.TrimSpace(value)
 	return e
+}
+
+func (e *element) Error() string {
+	return e.error
 }
 
 func (e *element) SetLabel(value string) *element {
-	e.Label = strings.TrimSpace(value)
+	e.label = strings.TrimSpace(value)
 	return e
 }
 
-func (e *element) SetValue(value string) {
-	e.Attributes.Set("value", value)
+func (e *element) Label() string {
+	return e.label
 }
 
 func (e *element) SetHint(value string) *element {
-	e.Hint = strings.TrimSpace(value)
+	e.hint = strings.TrimSpace(value)
+	if e.hint == "" {
+		e.attributes.Unset("aria-describedby")
+	} else {
+		e.attributes.Set("aria-describedby", fmt.Sprintf("%s-hint", e.Id()))
+	}
 	return e
 }
 
+func (e *element) Hint() string {
+	return e.hint
+}
+
 func (e *element) SetOptions(options ...option) *element {
-	e.Options = make([]option, len(options))
+	e.options = make([]option, len(options))
 	for i, opt := range options {
-		e.Options[i] = option{
+		e.options[i] = option{
 			Label: opt.Label,
 			Value: opt.Value,
 		}
@@ -282,15 +311,23 @@ func (e *element) SetOptions(options ...option) *element {
 	return e
 }
 
-func (e *element) SetAttributes(modifiers ...attr.Modifier) *element {
+func (e *element) Options() []option {
+	return e.options
+}
+
+func (e *element) SetAttributes(modifiers ...attrModifier) *element {
 	for _, mod := range modifiers {
-		mod(e.Attributes)
+		mod(e.attributes)
 	}
 	return e
 }
 
+func (e *element) Attributes() Attrs {
+	return e.attributes
+}
+
 func (e *element) MarkAsInvalid() {
-	attr.Invalid(e.Attributes)
+	Invalid(e.attributes)
 }
 
 var _ Element = (*element)(nil)

@@ -1,4 +1,4 @@
-package attr
+package goform
 
 import (
 	"fmt"
@@ -64,10 +64,9 @@ func isData(name string) bool {
 	return strings.HasPrefix(name, "data-")
 }
 
-type Modifier func(attrs Attrs)
-type Attrs map[string]any
+type attrModifier func(attrs Attrs)
 
-func newModifier(name string, value any) Modifier {
+func newModifier(name string, value any) attrModifier {
 	n := strings.ToLower(strings.TrimSpace(name))
 
 	if !slices.Contains(attributes, n) && !isAria(n) && !isData(n) {
@@ -87,15 +86,24 @@ func newModifier(name string, value any) Modifier {
 			case string:
 				attrs[n] = strings.TrimSpace(value)
 			default:
-				panic(fmt.Sprintf("unsupported type %T, only booleans & strings are supported", value))
+				panic(
+					fmt.Sprintf("unsupported attribute %s type %T, only booleans & strings are supported", n, value),
+				)
 			}
 		}
 	}
 }
 
+type Attrs map[string]any
+
 func (a Attrs) Set(name string, value any) Attrs {
 	modifier := newModifier(name, value)
 	modifier(a)
+	return a
+}
+
+func (a Attrs) Unset(name string) Attrs {
+	delete(a, name)
 	return a
 }
 
@@ -123,7 +131,7 @@ func (a Attrs) Bool(name string) bool {
 	return value
 }
 
-func Attributes(modifiers ...Modifier) Attrs {
+func Attributes(modifiers ...attrModifier) Attrs {
 	a := make(Attrs)
 	for _, mod := range modifiers {
 		mod(a)
@@ -131,21 +139,21 @@ func Attributes(modifiers ...Modifier) Attrs {
 	return a
 }
 
-func Id(value string) Modifier {
+func Id(id string) attrModifier {
 	return func(attrs Attrs) {
-		attrs["id"] = value
-		attrs["aria-errormessage"] = value + "-error"
+		attrs["id"] = id
+		attrs["aria-errormessage"] = fmt.Sprintf("%s-error", id)
 	}
 }
 
-func Required(value bool) Modifier {
+func Required(flag bool) attrModifier {
 	return func(attrs Attrs) {
-		if value {
+		if flag {
 			attrs["aria-required"] = "true"
 		} else {
 			attrs["aria-required"] = "false"
 		}
-		attrs["required"] = value
+		attrs["required"] = flag
 	}
 }
 
@@ -153,15 +161,15 @@ func Invalid(attrs Attrs) {
 	attrs["aria-invalid"] = "true"
 }
 
-func Attr(name string, value any) Modifier {
+func Attr(name string, value any) attrModifier {
 	return newModifier(name, value)
 }
 
 func GenId() string {
 	rand.NewSource(time.Now().UnixNano())
 
-	l := 8
-	c := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	l := 10
+	c := "abcdefghijklmnopqrstuvwxyz0123456789"
 
 	b := make([]byte, l)
 	for i := range b {

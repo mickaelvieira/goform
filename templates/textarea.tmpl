@@ -5,9 +5,10 @@
   </label>
   {{ end }}
   <div>
-    <textarea {{ attributes .Attributes }}>
+    <textarea{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
       {{ .Value }}
     </textarea>
     {{ .RenderError }}
+    {{ .RenderHint }}
   </div>
 </div>

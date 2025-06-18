@@ -1,6 +1,6 @@
 <div>
   <label for="{{ .Id }}">
-    <input {{ attributes .Attributes }} />
+    <input{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
     {{ if .Label }}
       <span>
         {{ .Label }}{{ if .IsRequired }} *{{ end }}
@@ -8,4 +8,5 @@
     {{ end }}
   </label>
   {{ .RenderError }}
+  {{ .RenderHint }}
 </div>

@@ -6,7 +6,7 @@
   </label>
   {{ end }}
   <div>
-    <select {{ attributes .Attributes }}>
+    <select{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
       {{ range .Options }}
       <option value="{{ .Value }}" {{ if eq .Value $value }}selected{{ end }}>
         {{ .Label }}
@@ -14,5 +14,6 @@
       {{ end }}
     </select>
     {{ .RenderError }}
+    {{ .RenderHint }}
   </div>
 </div>

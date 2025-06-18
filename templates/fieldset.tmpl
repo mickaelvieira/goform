@@ -1,0 +1,8 @@
+<fieldset{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
+  {{ if .Legend }}
+    <legend>{{ .Legend }}</legend>
+  {{ end }}
+  {{ range .Children }}
+    {{ form_component . }}
+  {{ end }}
+</fieldset>

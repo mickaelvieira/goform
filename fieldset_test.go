@@ -1,11 +1,9 @@
-package goforms
+package goform
 
 import (
 	"html/template"
 	"strings"
 	"testing"
-
-	"github.com/mickaelvieira/goforms/attr"
 )
 
 func TestFieldSet_Creation(t *testing.T) {
@@ -15,10 +13,10 @@ func TestFieldSet_Creation(t *testing.T) {
 		if fs.legend != "Test Legend" {
 			t.Errorf("expected legend=Test Legend, got %s", fs.legend)
 		}
-		if len(fs.elements) != 0 {
-			t.Errorf("expected 0 elements, got %d", len(fs.elements))
+		if len(fs.children) != 0 {
+			t.Errorf("expected 0 elements, got %d", len(fs.children))
 		}
-		if fs.template == nil {
+		if fs.renderer == nil {
 			t.Error("expected template to be initialized")
 		}
 	})
@@ -30,10 +28,10 @@ func TestFieldSet_Creation(t *testing.T) {
 		if fs.legend != "User Details" {
 			t.Errorf("expected legend=User Details, got %s", fs.legend)
 		}
-		if len(fs.elements) != 1 {
-			t.Errorf("expected 1 element, got %d", len(fs.elements))
+		if len(fs.children) != 1 {
+			t.Errorf("expected 1 element, got %d", len(fs.children))
 		}
-		if fs.elements[0] != textField {
+		if fs.children[0] != textField {
 			t.Error("expected first element to be the text field")
 		}
 	})
@@ -48,18 +46,18 @@ func TestFieldSet_Creation(t *testing.T) {
 		if fs.legend != "Registration Form" {
 			t.Errorf("expected legend=Registration Form, got %s", fs.legend)
 		}
-		if len(fs.elements) != 3 {
-			t.Errorf("expected 3 elements, got %d", len(fs.elements))
+		if len(fs.children) != 3 {
+			t.Errorf("expected 3 elements, got %d", len(fs.children))
 		}
 
 		// Check elements are in correct order
-		if fs.elements[0] != usernameField {
+		if fs.children[0] != usernameField {
 			t.Error("expected first element to be username field")
 		}
-		if fs.elements[1] != emailField {
+		if fs.children[1] != emailField {
 			t.Error("expected second element to be email field")
 		}
-		if fs.elements[2] != passwordField {
+		if fs.children[2] != passwordField {
 			t.Error("expected third element to be password field")
 		}
 	})
@@ -131,8 +129,8 @@ func TestFieldSet_Render(t *testing.T) {
 	})
 
 	t.Run("render fieldset with elements", func(t *testing.T) {
-		textField := Text("username", attr.Attr("placeholder", "Enter username"))
-		emailField := Email("email", attr.Required(true))
+		textField := Text("username").SetAttributes(Attr("placeholder", "Enter username"))
+		emailField := Email("email").SetAttributes(Required(true))
 
 		fs := FieldSet("User Information", textField, emailField)
 		result := fs.Render()
@@ -206,16 +204,22 @@ func TestFieldSet_ComplexScenarios(t *testing.T) {
 	})
 
 	t.Run("fieldset with configured elements", func(t *testing.T) {
-		usernameField := Text("username",
-			attr.Required(true),
-			attr.Attr("placeholder", "Enter username"),
-			attr.Attr("class", "form-control"),
-		).SetLabel("Username").SetHint("Must be unique")
+		usernameField := Text("username").
+			SetAttributes(
+				Required(true),
+				Attr("placeholder", "Enter username"),
+				Attr("class", "form-control"),
+			).
+			SetLabel("Username").
+			SetHint("Must be unique")
 
-		emailField := Email("email",
-			attr.Required(true),
-			attr.Attr("placeholder", "Enter email"),
-		).SetLabel("Email Address").SetError("Invalid email format")
+		emailField := Email("email").
+			SetAttributes(
+				Required(true),
+				Attr("placeholder", "Enter email"),
+			).
+			SetLabel("Email Address").
+			SetError("Invalid email format")
 
 		fs := FieldSet("Account Details", usernameField, emailField)
 
@@ -226,11 +230,11 @@ func TestFieldSet_ComplexScenarios(t *testing.T) {
 
 		// Check first element configuration
 		firstElem := children[0].(*element)
-		if firstElem.Label != "Username" {
-			t.Errorf("expected first element label=Username, got %s", firstElem.Label)
+		if firstElem.label != "Username" {
+			t.Errorf("expected first element label=Username, got %s", firstElem.label)
 		}
-		if firstElem.Hint != "Must be unique" {
-			t.Errorf("expected first element hint=Must be unique, got %s", firstElem.Hint)
+		if firstElem.hint != "Must be unique" {
+			t.Errorf("expected first element hint=Must be unique, got %s", firstElem.hint)
 		}
 		if !firstElem.IsRequired() {
 			t.Error("expected first element to be required")
@@ -238,11 +242,11 @@ func TestFieldSet_ComplexScenarios(t *testing.T) {
 
 		// Check second element configuration
 		secondElem := children[1].(*element)
-		if secondElem.Label != "Email Address" {
-			t.Errorf("expected second element label=Email Address, got %s", secondElem.Label)
+		if secondElem.label != "Email Address" {
+			t.Errorf("expected second element label=Email Address, got %s", secondElem.label)
 		}
-		if secondElem.Error != "Invalid email format" {
-			t.Errorf("expected second element error=Invalid email format, got %s", secondElem.Error)
+		if secondElem.error != "Invalid email format" {
+			t.Errorf("expected second element error=Invalid email format, got %s", secondElem.error)
 		}
 		if !secondElem.IsRequired() {
 			t.Error("expected second element to be required")
@@ -312,7 +316,7 @@ func TestFieldSet_LegendHandling(t *testing.T) {
 
 func TestFieldSet_ElementOrder(t *testing.T) {
 	t.Run("maintains element order", func(t *testing.T) {
-		elements := []Element{
+		elements := []Renderer{
 			Text("field1"),
 			Email("field2"),
 			Password("field3"),
@@ -339,7 +343,6 @@ func TestFieldSet_NilElements(t *testing.T) {
 	t.Run("handles mixed nil and valid elements", func(t *testing.T) {
 		validElement := Text("valid")
 
-		// Create fieldset with valid and nil elements
 		fs := FieldSet("Test", validElement, nil, nil)
 
 		children := fs.Children()

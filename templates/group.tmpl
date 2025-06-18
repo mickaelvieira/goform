@@ -1,0 +1,5 @@
+<div{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
+  {{ range .Children }}
+    {{ form_component . }}
+  {{ end }}
+</div>

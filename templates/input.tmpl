@@ -1,0 +1,18 @@
+{{ $type := .Attribute "type" }}
+
+{{ if or (eq $type "hidden") (eq $type "submit") (eq $type "button") (eq $type "reset") }}
+<input{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
+{{ else }}
+<div>
+  {{ if .Label }}
+  <label for="{{ .Id }}">
+    {{ .Label }}{{ if .IsRequired }} <span>*</span>{{ end }}
+  </label>
+  {{ end }}
+  <div>
+    <input{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
+    {{ .RenderError }}
+    {{ .RenderHint }}
+  </div>
+</div>
+{{ end }}
