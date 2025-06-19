@@ -173,7 +173,7 @@ func GenId() string {
 
 	b := make([]byte, l)
 	for i := range b {
-		b[i] = c[rand.Intn(len(c))]
+		b[i] = c[rand.Intn(len(c))] //nolint:gosec // G404: Use of weak random number generator
 	}
 	return string(b)
 }

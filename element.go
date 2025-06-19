@@ -183,11 +183,12 @@ func newElement(name, kind string) *element {
 	a := Attributes()
 
 	if isInputType(kind) {
-		if kind == InputTypeCheckbox {
+		switch kind {
+		case InputTypeCheckbox:
 			t = "checkbox"
-		} else if kind == InputTypeRadio {
+		case InputTypeRadio:
 			t = "radio"
-		} else {
+		default:
 			t = "input"
 		}
 		a.Set("type", kind)

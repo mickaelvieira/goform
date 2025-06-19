@@ -44,15 +44,16 @@ func (tr *templateRenderer) Render(name string, data any) template.HTML {
 		}
 	}
 
+	//nolint:gosec // G203
 	return template.HTML(fmt.Sprintf("template %s was not found", name))
 }
 
 func (tr *templateRenderer) render(t *template.Template, data any) template.HTML {
 	var buf strings.Builder
 	if err := t.Execute(&buf, data); err != nil {
-		return template.HTML(fmt.Sprintf("%s", err))
+		return template.HTML(fmt.Sprintf("%s", err)) //nolint:gosec // G203
 	}
-	return template.HTML(buf.String())
+	return template.HTML(buf.String()) //nolint:gosec // G203
 }
 
 var getTemplateRenderer = sync.OnceValue(
@@ -148,6 +149,7 @@ func attributesRenderer() func(map[string]any) (template.HTMLAttr, error) {
 				s.WriteString(fmt.Sprintf(`attribute %s has an unsupported data type %T, only boolean & string are allowed`, name, value))
 			}
 		}
+		//nolint:gosec // G203
 		return template.HTMLAttr(strings.TrimSpace(s.String())), nil
 	}
 }

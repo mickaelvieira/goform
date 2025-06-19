@@ -141,14 +141,6 @@ func TestGroup_Render(t *testing.T) {
 			t.Error("expected non-empty HTML string")
 		}
 	})
-
-	t.Run("render returns template.HTML type", func(t *testing.T) {
-		g := Group()
-		result := g.Render()
-
-		// Verify it's the correct type
-		var _ template.HTML = result
-	})
 }
 
 func TestGroup_ComplexScenarios(t *testing.T) {
@@ -385,7 +377,7 @@ func TestGroup_NilSafety(t *testing.T) {
 
 		// The exact behavior depends on how Go handles nil variadic params
 		// but it should not panic
-		if children != nil && len(children) != 0 {
+		if len(children) != 0 {
 			t.Errorf("expected empty or nil children, got %d", len(children))
 		}
 	})

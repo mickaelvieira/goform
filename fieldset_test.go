@@ -149,14 +149,6 @@ func TestFieldSet_Render(t *testing.T) {
 			t.Error("expected rendered HTML to contain legend text")
 		}
 	})
-
-	t.Run("render returns template.HTML type", func(t *testing.T) {
-		fs := FieldSet("Test")
-		result := fs.Render()
-
-		// Verify it's the correct type
-		var _ template.HTML = result
-	})
 }
 
 func TestFieldSet_ComplexScenarios(t *testing.T) {

@@ -188,7 +188,7 @@ func TestElement_IsRequired(t *testing.T) {
 	}
 
 	// Set required
-	elem.SetAttributes(Required(true))
+	elem = elem.SetAttributes(Required(true))
 	if !elem.IsRequired() {
 		t.Error("expected required=true after setting")
 	}
@@ -385,7 +385,8 @@ func TestElement_RenderSelect(t *testing.T) {
 
 func TestElement_RenderError(t *testing.T) {
 	elem := Text("test").SetAttributes(Id("test-field"))
-	elem.SetError("This field is required")
+	elem = elem.SetError("This field is required")
+
 	result := elem.RenderError()
 	htmlStr := cleanHTML(result)
 

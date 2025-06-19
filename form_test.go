@@ -120,14 +120,14 @@ func TestForm_SetAttributes(t *testing.T) {
 	})
 
 	t.Run("set multiple attributes at once", func(t *testing.T) {
-		f := Form()
-		f.SetAttributes(
-			Attr("method", "POST"),
-			Attr("action", "/submit"),
-			Attr("enctype", "multipart/form-data"),
-			Attr("novalidate", true),
-			Attr("autocomplete", "off"),
-		)
+		f := Form().
+			SetAttributes(
+				Attr("method", "POST"),
+				Attr("action", "/submit"),
+				Attr("enctype", "multipart/form-data"),
+				Attr("novalidate", true),
+				Attr("autocomplete", "off"),
+			)
 
 		if f.attributes.String("method") != "POST" {
 			t.Errorf("expected method=POST, got %s", f.attributes.String("method"))
