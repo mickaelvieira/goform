@@ -87,21 +87,13 @@ func TestElementCreationFunctions(t *testing.T) {
 			if elem.Id() == "" {
 				t.Error("expected ID to be generated")
 			}
-
-			// Check default attributes
-			if elem.attributes.String("aria-invalid") != "false" {
-				t.Errorf("expected aria-invalid=false, got %s", elem.attributes.String("aria-invalid"))
-			}
-			if elem.attributes.String("aria-required") != "false" {
-				t.Errorf("expected aria-required=false, got %s", elem.attributes.String("aria-required"))
-			}
 		})
 	}
 }
 
 func TestNewElementWithModifiers(t *testing.T) {
 	elem := Text("test-field").SetAttributes(
-		Required(true),
+		Attr("required", true),
 		Attr("class", "form-control"),
 		Attr("placeholder", "Enter text"),
 	)
@@ -188,7 +180,7 @@ func TestElement_IsRequired(t *testing.T) {
 	}
 
 	// Set required
-	elem = elem.SetAttributes(Required(true))
+	elem = elem.SetAttributes(Attr("required", true))
 	if !elem.IsRequired() {
 		t.Error("expected required=true after setting")
 	}
@@ -203,7 +195,7 @@ func TestElement_IsValid(t *testing.T) {
 	})
 
 	t.Run("required field with value is valid", func(t *testing.T) {
-		elem := Text("test").SetAttributes(Required(true))
+		elem := Text("test").SetAttributes(Attr("required", true))
 		elem.SetValue("some-value")
 		if !elem.IsValid() {
 			t.Error("expected required field with value to be valid")
@@ -211,7 +203,7 @@ func TestElement_IsValid(t *testing.T) {
 	})
 
 	t.Run("required field without value is invalid", func(t *testing.T) {
-		elem := Text("test").SetAttributes(Required(true))
+		elem := Text("test").SetAttributes(Attr("required", true))
 		if elem.IsValid() {
 			t.Error("expected required field without value to be invalid")
 		}
@@ -294,7 +286,7 @@ func TestElement_SetAttributes(t *testing.T) {
 	elem := Text("test")
 	result := elem.SetAttributes(
 		Attr("class", "form-control"),
-		Required(true),
+		Attr("required", true),
 	)
 
 	if elem.attributes.String("class") != "form-control" {
@@ -322,7 +314,7 @@ func TestElement_Render(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><div><input aria-errormessage="test-id-error" aria-invalid="false" aria-required="false" id="test-id" name="test" type="text"></div></div>`
+	expected := `<div><div><input id="test-id" name="test" type="text"></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -333,7 +325,7 @@ func TestElement_RenderWithAttributes(t *testing.T) {
 	elem := Text("username").
 		SetAttributes(
 			Id("username-field"),
-			Required(true),
+			Attr("required", true),
 			Attr("class", "form-control"),
 			Attr("placeholder", "Enter username"),
 		).
@@ -344,7 +336,7 @@ func TestElement_RenderWithAttributes(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><label for="username-field">Username <span>*</span></label><div><input aria-describedby="username-field-hint" aria-errormessage="username-field-error" aria-invalid="false" aria-required="true" class="form-control" id="username-field" name="username" placeholder="Enter username" required type="text"><span id="username-field-error">This field is required</span><i id="username-field-hint">Must be unique</i></div></div>`
+	expected := `<div><label for="username-field">Username <span>*</span></label><div><input aria-describedby="username-field-hint" aria-errormessage="username-field-error" class="form-control" id="username-field" name="username" placeholder="Enter username" required type="text"><span id="username-field-error">This field is required</span><i id="username-field-hint">Must be unique</i></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual:   %s", expected, htmlStr)
@@ -359,7 +351,7 @@ func TestElement_RenderCheckbox(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><label for="agree-checkbox"><input aria-errormessage="agree-checkbox-error" aria-invalid="false" aria-required="false" id="agree-checkbox" name="agree" type="checkbox" value="yes"></label></div>`
+	expected := `<div><label for="agree-checkbox"><input id="agree-checkbox" name="agree" type="checkbox" value="yes"></label></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -376,7 +368,7 @@ func TestElement_RenderSelect(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><div><select aria-errormessage="country-select-error" aria-invalid="false" aria-required="false" id="country-select" name="country"><option value="us" >United States</option><option value="ca" >Canada</option></select></div></div>`
+	expected := `<div><div><select id="country-select" name="country"><option value="us" >United States</option><option value="ca" >Canada</option></select></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -387,10 +379,10 @@ func TestElement_RenderError(t *testing.T) {
 	elem := Text("test").SetAttributes(Id("test-field"))
 	elem = elem.SetError("This field is required")
 
-	result := elem.RenderError()
+	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<span id="test-field-error">This field is required</span>`
+	expected := `<div><div><input aria-errormessage="test-field-error" id="test-field" name="test" type="text"><span id="test-field-error">This field is required</span></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual:   %s", expected, htmlStr)
@@ -406,7 +398,7 @@ func TestElement_RenderTextarea(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><div><textarea aria-errormessage="desc-textarea-error" aria-invalid="false" aria-required="false" cols="40" id="desc-textarea" name="description" rows="5"></textarea></div></div>`
+	expected := `<div><div><textarea cols="40" id="desc-textarea" name="description" rows="5"></textarea></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -421,7 +413,7 @@ func TestElement_RenderButton(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<input aria-errormessage="submit-button-error" aria-invalid="false" aria-required="false" class="btn-primary" id="submit-button" name="submit-btn" type="submit">`
+	expected := `<input class="btn-primary" id="submit-button" name="submit-btn" type="submit">`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -436,7 +428,7 @@ func TestElement_RenderRadio(t *testing.T) {
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><label for="gender-male"><input aria-errormessage="gender-male-error" aria-invalid="false" aria-required="false" id="gender-male" name="gender" type="radio" value="male"></label></div>`
+	expected := `<div><label for="gender-male"><input id="gender-male" name="gender" type="radio" value="male"></label></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -446,14 +438,14 @@ func TestElement_RenderRadio(t *testing.T) {
 func TestElement_RenderWithBooleanAttributes(t *testing.T) {
 	elem := Text("test").SetAttributes(
 		Id("test-bool"),
-		Required(true),
+		Attr("required", true),
 		Attr("disabled", true),
 		Attr("readonly", false), // Should not appear in output
 	)
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><div><input aria-errormessage="test-bool-error" aria-invalid="false" aria-required="true" disabled id="test-bool" name="test" required type="text"></div></div>`
+	expected := `<div><div><input disabled id="test-bool" name="test" required type="text"></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -463,13 +455,13 @@ func TestElement_RenderWithBooleanAttributes(t *testing.T) {
 func TestElement_RenderEmptyAttributes(t *testing.T) {
 	elem := Text("test").SetAttributes(
 		Id("test-empty"),
-		Attr("placeholder", ""),       // Empty string should not appear
-		Attr("class", "form-control"), // Non-empty should appear
+		Attr("placeholder", ""),
+		Attr("class", "form-control"),
 	)
 	result := elem.Render()
 	htmlStr := cleanHTML(result)
 
-	expected := `<div><div><input aria-errormessage="test-empty-error" aria-invalid="false" aria-required="false" class="form-control" id="test-empty" name="test" type="text"></div></div>`
+	expected := `<div><div><input class="form-control" id="test-empty" name="test" type="text"></div></div>`
 
 	if htmlStr != expected {
 		t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, htmlStr)
@@ -481,7 +473,7 @@ func TestElementChaining(t *testing.T) {
 		SetLabel("Test Field").
 		SetHint("Enter some text").
 		SetError("This field is required").
-		SetAttributes(Required(true), Attr("class", "form-control"))
+		SetAttributes(Attr("required", true), Attr("class", "form-control"))
 
 	if elem.label != "Test Field" {
 		t.Errorf("expected label=Test Field, got %s", elem.label)
@@ -497,24 +489,5 @@ func TestElementChaining(t *testing.T) {
 	}
 	if elem.attributes.String("class") != "form-control" {
 		t.Errorf("expected class=form-control, got %s", elem.attributes.String("class"))
-	}
-}
-
-func TestDefaultModifiers(t *testing.T) {
-	elem := Text("test")
-
-	if elem.attributes.String("aria-invalid") != "false" {
-		t.Errorf("expected aria-invalid=false by default, got %s", elem.attributes.String("aria-invalid"))
-	}
-	if elem.attributes.String("aria-required") != "false" {
-		t.Errorf("expected aria-required=false by default, got %s", elem.attributes.String("aria-required"))
-	}
-}
-
-func TestModifiersOverrideDefaults(t *testing.T) {
-	elem := Text("test").SetAttributes(Required(true))
-
-	if elem.attributes.String("aria-required") != "true" {
-		t.Errorf("expected aria-required=true after Required modifier, got %s", elem.attributes.String("aria-required"))
 	}
 }

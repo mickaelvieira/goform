@@ -37,11 +37,6 @@ const (
 	TextareaElement = "textarea"
 )
 
-var defaultModifiers = []attrModifier{
-	Attr("aria-invalid", "false"),
-	Attr("aria-required", "false"),
-}
-
 func isInputType(t string) bool {
 	return t != SelectElement && t != TextareaElement
 }
@@ -199,12 +194,8 @@ func newElement(name, kind string) *element {
 
 	i := &element{
 		template:   t,
-		renderer:   getTemplateRenderer(),
 		attributes: a,
-	}
-
-	for _, mod := range defaultModifiers {
-		mod(i.attributes)
+		renderer:   getTemplateRenderer(),
 	}
 
 	return i
@@ -271,6 +262,11 @@ func (e *element) IsValid() bool {
 
 func (e *element) SetError(value string) *element {
 	e.error = strings.TrimSpace(value)
+	if e.error == "" {
+		e.attributes.Unset(AriaErrorAttribute)
+	} else {
+		e.attributes.Set(AriaErrorAttribute, fmt.Sprintf(AriaErrorTemplate, e.Id()))
+	}
 	return e
 }
 
@@ -290,9 +286,9 @@ func (e *element) Label() string {
 func (e *element) SetHint(value string) *element {
 	e.hint = strings.TrimSpace(value)
 	if e.hint == "" {
-		e.attributes.Unset("aria-describedby")
+		e.attributes.Unset(AriaHintAttribute)
 	} else {
-		e.attributes.Set("aria-describedby", fmt.Sprintf("%s-hint", e.Id()))
+		e.attributes.Set(AriaHintAttribute, fmt.Sprintf(AriaHintTemplate, e.Id()))
 	}
 	return e
 }
@@ -328,7 +324,7 @@ func (e *element) Attributes() Attrs {
 }
 
 func (e *element) MarkAsInvalid() {
-	Invalid(e.attributes)
+	e.attributes.Set("aria-invalid", "true")
 }
 
 var _ Element = (*element)(nil)

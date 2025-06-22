@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+const (
+	AriaHintTemplate   = "%s-hint"
+	AriaHintAttribute  = "aria-describedby"
+	AriaErrorTemplate  = "%s-error"
+	AriaErrorAttribute = "aria-errormessage"
+)
+
 var attributes = []string{
 	"accept",
 	"accept-charset",
@@ -43,6 +50,7 @@ var attributes = []string{
 	"placeholder",
 	"readonly",
 	"required",
+	"role",
 	"rows",
 	"selected",
 	"size",
@@ -76,8 +84,6 @@ func newModifier(name string, value any) attrModifier {
 	switch n {
 	case "id":
 		return Id(value.(string))
-	case "required":
-		return Required(value.(bool))
 	default:
 		return func(attrs Attrs) {
 			switch value := value.(type) {
@@ -142,23 +148,18 @@ func Attributes(modifiers ...attrModifier) Attrs {
 func Id(id string) attrModifier {
 	return func(attrs Attrs) {
 		attrs["id"] = id
-		attrs["aria-errormessage"] = fmt.Sprintf("%s-error", id)
-	}
-}
 
-func Required(flag bool) attrModifier {
-	return func(attrs Attrs) {
-		if flag {
-			attrs["aria-required"] = "true"
-		} else {
-			attrs["aria-required"] = "false"
+		// make sure ID-depend attributes are kept up to date
+		_, hasError := attrs[AriaErrorAttribute]
+		if hasError {
+			attrs[AriaErrorAttribute] = fmt.Sprintf(AriaErrorTemplate, id)
 		}
-		attrs["required"] = flag
-	}
-}
 
-func Invalid(attrs Attrs) {
-	attrs["aria-invalid"] = "true"
+		_, hasHint := attrs[AriaHintAttribute]
+		if hasHint {
+			attrs[AriaHintAttribute] = fmt.Sprintf(AriaHintTemplate, id)
+		}
+	}
 }
 
 func Attr(name string, value any) attrModifier {

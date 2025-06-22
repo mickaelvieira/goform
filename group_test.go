@@ -131,7 +131,7 @@ func TestGroup_Render(t *testing.T) {
 
 	t.Run("render group with elements", func(t *testing.T) {
 		textField := Text("username").SetAttributes(Attr("placeholder", "Enter username"))
-		emailField := Email("email").SetAttributes(Required(true))
+		emailField := Email("email").SetAttributes(Attr("required", true))
 
 		g := Group(textField, emailField).
 			SetAttributes(Attr("class", "user-fields"))
@@ -194,7 +194,7 @@ func TestGroup_ComplexScenarios(t *testing.T) {
 	t.Run("group with configured elements", func(t *testing.T) {
 		usernameField := Text("username").
 			SetAttributes(
-				Required(true),
+				Attr("required", true),
 				Attr("placeholder", "Enter username"),
 				Attr("class", "form-control"),
 			).
@@ -203,7 +203,7 @@ func TestGroup_ComplexScenarios(t *testing.T) {
 
 		emailField := Email("email").
 			SetAttributes(
-				Required(true),
+				Attr("required", true),
 				Attr("placeholder", "Enter email"),
 			).
 			SetLabel("Email Address").

@@ -198,9 +198,6 @@ func TestNewModifier_SpecialCases(t *testing.T) {
 		if attrs["id"] != "test-id" {
 			t.Errorf("expected id=test-id, got %v", attrs["id"])
 		}
-		if attrs["aria-errormessage"] != "test-id-error" {
-			t.Errorf("expected aria-errormessage=test-id-error, got %v", attrs["aria-errormessage"])
-		}
 	})
 
 	t.Run("required true", func(t *testing.T) {
@@ -211,9 +208,6 @@ func TestNewModifier_SpecialCases(t *testing.T) {
 		if attrs["required"] != true {
 			t.Errorf("expected required=true, got %v", attrs["required"])
 		}
-		if attrs["aria-required"] != "true" {
-			t.Errorf("expected aria-required=true, got %v", attrs["aria-required"])
-		}
 	})
 
 	t.Run("required false", func(t *testing.T) {
@@ -223,9 +217,6 @@ func TestNewModifier_SpecialCases(t *testing.T) {
 
 		if attrs["required"] != false {
 			t.Errorf("expected required=false, got %v", attrs["required"])
-		}
-		if attrs["aria-required"] != "false" {
-			t.Errorf("expected aria-required=false, got %v", attrs["aria-required"])
 		}
 	})
 }
@@ -336,16 +327,14 @@ func TestAttrs_Bool(t *testing.T) {
 func TestAttributes(t *testing.T) {
 	attrs := Attributes(
 		Id("test-id"),
-		Required(true),
+		Attr("required", true),
 		Attr("class", "form-control"),
 	)
 
 	expected := map[string]any{
-		"id":                "test-id",
-		"aria-errormessage": "test-id-error",
-		"required":          true,
-		"aria-required":     "true",
-		"class":             "form-control",
+		"id":       "test-id",
+		"required": true,
+		"class":    "form-control",
 	}
 
 	for key, expectedValue := range expected {
@@ -357,6 +346,8 @@ func TestAttributes(t *testing.T) {
 
 func TestId(t *testing.T) {
 	attrs := make(Attrs)
+	attrs.Set("aria-errormessage", "foo-error")
+	attrs.Set("aria-describedby", "foo-hint")
 	modifier := Id("test-id")
 	modifier(attrs)
 
@@ -366,43 +357,30 @@ func TestId(t *testing.T) {
 	if attrs["aria-errormessage"] != "test-id-error" {
 		t.Errorf("expected aria-errormessage=test-id-error, got %v", attrs["aria-errormessage"])
 	}
+	if attrs["aria-describedby"] != "test-id-hint" {
+		t.Errorf("expected aria-describedby=test-id-hint, got %v", attrs["aria-describedby"])
+	}
 }
 
 func TestRequired(t *testing.T) {
 	t.Run("required true", func(t *testing.T) {
 		attrs := make(Attrs)
-		modifier := Required(true)
+		modifier := Attr("required", true)
 		modifier(attrs)
 
 		if attrs["required"] != true {
 			t.Errorf("expected required=true, got %v", attrs["required"])
 		}
-		if attrs["aria-required"] != "true" {
-			t.Errorf("expected aria-required=true, got %v", attrs["aria-required"])
-		}
 	})
 
 	t.Run("required false", func(t *testing.T) {
 		attrs := make(Attrs)
-		modifier := Required(false)
-		modifier(attrs)
+		attrs.Set("required", false)
 
 		if attrs["required"] != false {
 			t.Errorf("expected required=false, got %v", attrs["required"])
 		}
-		if attrs["aria-required"] != "false" {
-			t.Errorf("expected aria-required=false, got %v", attrs["aria-required"])
-		}
 	})
-}
-
-func TestInvalid(t *testing.T) {
-	attrs := make(Attrs)
-	Invalid(attrs)
-
-	if attrs["aria-invalid"] != "true" {
-		t.Errorf("expected aria-invalid=true, got %v", attrs["aria-invalid"])
-	}
 }
 
 func TestAttr(t *testing.T) {

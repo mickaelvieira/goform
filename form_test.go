@@ -256,6 +256,7 @@ func TestForm_GroupElements(t *testing.T) {
 		submitButton := Submit("submit").SetAttributes(Id("submit-btn"))
 
 		f := Form().
+			SetError("Please fill in all required fields.").
 			AddChildren(textField, Group(submitButton, resetButton, regularButton)).
 			SetAttributes(
 				Id("login-form"),
@@ -266,11 +267,11 @@ func TestForm_GroupElements(t *testing.T) {
 		result := f.Render()
 		htmlStr := cleanHTML(result)
 
-		expectedForm := `<form action="/login" aria-errormessage="login-form-error" enctype="application/x-www-form-urlencoded" id="login-form" method="POST">`
-		expectedUsernameField := `<div><div><input aria-errormessage="username-field-error" aria-invalid="false" aria-required="false" id="username-field" name="username" type="text"></div></div>`
-		expectedSubmitButton := `<div><input aria-errormessage="submit-btn-error" aria-invalid="false" aria-required="false" id="submit-btn" name="submit" type="submit">`
-		expectedResetButton := `<input aria-errormessage="reset-btn-error" aria-invalid="false" aria-required="false" id="reset-btn" name="reset" type="reset">`
-		expectedRegularButton := `<input aria-errormessage="button-btn-error" aria-invalid="false" aria-required="false" id="button-btn" name="button" type="button"></div>`
+		expectedForm := `<form action="/login" aria-errormessage="login-form-error" enctype="application/x-www-form-urlencoded" id="login-form" method="POST"><span id="login-form-error">Please fill in all required fields.</span>`
+		expectedUsernameField := `<div><div><input id="username-field" name="username" type="text"></div></div>`
+		expectedSubmitButton := `<div role="group"><input id="submit-btn" name="submit" type="submit">`
+		expectedResetButton := `<input id="reset-btn" name="reset" type="reset">`
+		expectedRegularButton := `<input id="button-btn" name="button" type="button"></div>`
 		expectedFormEnd := `</form>`
 
 		expected := expectedForm + expectedUsernameField + expectedSubmitButton + expectedResetButton + expectedRegularButton + expectedFormEnd
@@ -347,14 +348,14 @@ func TestForm_ComplexScenarios(t *testing.T) {
 		htmlStr := cleanHTML(result)
 
 		// Test the complete rendered form with nested containers
-		expectedForm := `<form action="/submit" aria-errormessage="nested-form-error" enctype="application/x-www-form-urlencoded" id="nested-form" method="POST">`
+		expectedForm := `<form action="/submit" enctype="application/x-www-form-urlencoded" id="nested-form" method="POST">`
 		expectedFieldSet := `<fieldset><legend>User Information</legend>`
-		expectedUsernameField := `<div><div><input aria-errormessage="username-field-error" aria-invalid="false" aria-required="false" id="username-field" name="username" type="text"></div></div>`
-		expectedEmailField := `<div><div><input aria-errormessage="email-field-error" aria-invalid="false" aria-required="false" id="email-field" name="email" type="email"></div></div>`
+		expectedUsernameField := `<div><div><input id="username-field" name="username" type="text"></div></div>`
+		expectedEmailField := `<div><div><input id="email-field" name="email" type="email"></div></div>`
 		expectedFieldSetEnd := `</fieldset>`
-		expectedGroupStart := `<div class="address-group">`
-		expectedStreetField := `<div><div><input aria-errormessage="street-field-error" aria-invalid="false" aria-required="false" id="street-field" name="street" type="text"></div></div>`
-		expectedCityField := `<div><div><input aria-errormessage="city-field-error" aria-invalid="false" aria-required="false" id="city-field" name="city" type="text"></div></div>`
+		expectedGroupStart := `<div class="address-group" role="group">`
+		expectedStreetField := `<div><div><input id="street-field" name="street" type="text"></div></div>`
+		expectedCityField := `<div><div><input id="city-field" name="city" type="text"></div></div>`
 		expectedGroupEnd := `</div>`
 		expectedFormEnd := `</form>`
 
@@ -463,7 +464,7 @@ func TestForm_EmptyForm(t *testing.T) {
 		)
 
 		result := cleanHTML(f.Render())
-		expected := `<form action="/submit" aria-errormessage="empty-form-error" enctype="application/x-www-form-urlencoded" id="empty-form" method="POST"></form>`
+		expected := `<form action="/submit" enctype="application/x-www-form-urlencoded" id="empty-form" method="POST"></form>`
 
 		if result != expected {
 			t.Errorf("expected exact HTML match:\nExpected: %s\nActual: %s", expected, result)

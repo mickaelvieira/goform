@@ -1,6 +1,7 @@
 package goform
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"reflect"
@@ -43,6 +44,11 @@ func (f *form) Id() string {
 
 func (f *form) SetError(value string) *form {
 	f.error = strings.TrimSpace(value)
+	if f.error == "" {
+		f.attributes.Unset(AriaErrorAttribute)
+	} else {
+		f.attributes.Set(AriaErrorAttribute, fmt.Sprintf(AriaErrorTemplate, f.Id()))
+	}
 	return f
 }
 

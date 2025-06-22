@@ -4,14 +4,14 @@ import (
 	"html/template"
 )
 
-func FieldSet(legend string, elements ...Renderer) *fieldSet {
-	if elements == nil {
-		elements = []Renderer{}
+func FieldSet(legend string, children ...Renderer) *fieldSet {
+	if children == nil {
+		children = []Renderer{}
 	}
 
 	return &fieldSet{
 		legend:     legend,
-		children:   elements,
+		children:   children,
 		attributes: Attributes(),
 		renderer:   getTemplateRenderer(),
 	}

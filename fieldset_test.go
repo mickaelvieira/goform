@@ -130,7 +130,7 @@ func TestFieldSet_Render(t *testing.T) {
 
 	t.Run("render fieldset with elements", func(t *testing.T) {
 		textField := Text("username").SetAttributes(Attr("placeholder", "Enter username"))
-		emailField := Email("email").SetAttributes(Required(true))
+		emailField := Email("email").SetAttributes(Attr("required", true))
 
 		fs := FieldSet("User Information", textField, emailField)
 		result := fs.Render()
@@ -198,7 +198,7 @@ func TestFieldSet_ComplexScenarios(t *testing.T) {
 	t.Run("fieldset with configured elements", func(t *testing.T) {
 		usernameField := Text("username").
 			SetAttributes(
-				Required(true),
+				Attr("required", true),
 				Attr("placeholder", "Enter username"),
 				Attr("class", "form-control"),
 			).
@@ -207,7 +207,7 @@ func TestFieldSet_ComplexScenarios(t *testing.T) {
 
 		emailField := Email("email").
 			SetAttributes(
-				Required(true),
+				Attr("required", true),
 				Attr("placeholder", "Enter email"),
 			).
 			SetLabel("Email Address").

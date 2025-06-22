@@ -9,9 +9,12 @@ func Group(children ...Renderer) *group {
 		children = []Renderer{}
 	}
 
+	a := Attributes()
+	a.Set("role", "group")
+
 	return &group{
 		children:   children,
-		attributes: Attributes(),
+		attributes: a,
 		renderer:   getTemplateRenderer(),
 	}
 }
