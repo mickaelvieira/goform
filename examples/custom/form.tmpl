@@ -1,0 +1,10 @@
+{{ $fieldset := index .Children 0 }}
+{{ $group := index .Children 1 }}
+
+<div class="form-example">
+  <form{{ if gt (len .Attributes) 0 }} {{ form_attributes .Attributes }}{{ end }}>
+    {{ form_component $fieldset }}
+    {{ .RenderError }}
+    {{ form_component $group }}
+  </form>
+</div>
