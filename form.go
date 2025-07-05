@@ -129,7 +129,7 @@ func (f *form) PopulateFromRequest(r *http.Request) *form {
 
 	// Also parse multipart form if present (for file uploads)
 	if r.MultipartForm == nil {
-		r.ParseMultipartForm(32 << 20) // 32 MB max memory
+		_ = r.ParseMultipartForm(32 << 20) // 32 MB max memory, ignore errors as it's optional
 	}
 
 	elements := f.Elements()

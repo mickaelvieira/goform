@@ -495,7 +495,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -564,7 +564,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -632,7 +632,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Check that the text elements were populated correctly
 		elements := form.Elements()
@@ -691,7 +691,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form first
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Then validate separately
 		isValid, errors := form.IsValid()
@@ -749,7 +749,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -828,7 +828,7 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Check that the element was populated correctly
 		elements := form.Elements()
@@ -927,7 +927,7 @@ func TestForm_Populate(t *testing.T) {
 
 		// Create struct instance and populate it
 		var user UserForm
-		form.Populate(&user)
+		_ = form.Populate(&user)
 
 		// Check that struct was populated correctly
 		if user.Name != "John Doe" {
@@ -968,7 +968,7 @@ func TestForm_Populate(t *testing.T) {
 
 		// Create struct instance and populate it
 		var files FileForm
-		form.Populate(&files)
+		_ = form.Populate(&files)
 
 		// Check that slice was populated correctly
 		expectedDocs := []string{"resume.pdf", "cover-letter.docx", "portfolio.pdf"}
@@ -1008,7 +1008,7 @@ func TestForm_Populate(t *testing.T) {
 
 		// Create struct instance and populate it
 		var empty EmptyForm
-		form.Populate(&empty)
+		_ = form.Populate(&empty)
 
 		// Check that struct fields remain empty
 		if empty.Name != "" {
@@ -1057,7 +1057,7 @@ func TestForm_Populate(t *testing.T) {
 		elements["name"].SetValue("John")
 
 		var partial PartialForm
-		form.Populate(&partial)
+		_ = form.Populate(&partial)
 
 		// Name should be set, Missing should remain empty
 		if partial.Name != "John" {
@@ -1114,7 +1114,7 @@ func TestForm_Populate(t *testing.T) {
 		}
 
 		// Step 1: Populate from request
-		form.PopulateFromRequest(req)
+		_ = form.PopulateFromRequest(req)
 
 		// Step 2: Validate
 		isValid, errors := form.IsValid()
@@ -1124,7 +1124,7 @@ func TestForm_Populate(t *testing.T) {
 
 		// Step 3: Populate struct
 		var result CompleteForm
-		form.Populate(&result)
+		_ = form.Populate(&result)
 
 		// Step 4: Verify struct was populated correctly
 		if result.Name != "Jane Doe" {
