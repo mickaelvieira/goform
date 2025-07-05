@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Registration Success</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.purple.min.css">
+    <style>
+      .success {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: var(--pico-border-radius);
+        color: #0c5460;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .data {
+        background: var(--pico-background-color);
+        border: 1px solid var(--pico-border-color);
+        border-radius: var(--pico-border-radius);
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .data h3 {
+        margin-top: 0;
+        color: var(--pico-primary);
+      }
+
+      .field {
+        margin-bottom: 10px;
+      }
+
+      .field strong {
+        color: var(--pico-primary);
+      }
+
+      pre {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: var(--pico-border-radius);
+        padding: 15px;
+        overflow-x: auto;
+        font-size: 0.9em;
+      }
+    </style>
+</head>
+<body>
+  <main class="container">
+    <article class="component">
+      <div class="success">
+        <h2>Registration Successful!</h2>
+        <p>Your form has been processed and the data has been populated into a Go struct.</p>
+      </div>
+
+      <div class="data">
+        <h3>Populated Struct Data:</h3>
+        <div class="field">
+          <strong>Name:</strong> {{.User.Name}}
+        </div>
+        <div class="field">
+          <strong>Email:</strong> {{.User.Email}}
+        </div>
+        <div class="field">
+          <strong>Bio:</strong> {{.User.Bio}}
+        </div>
+        <div class="field">
+          <strong>Avatar:</strong> {{.User.Avatar}}
+        </div>
+        <div class="field">
+          <strong>Documents:</strong> {{.User.Documents}}
+        </div>
+
+        <h4>Raw Struct:</h4>
+        <pre>{{.RawStruct}}</pre>
+      </div>
+
+      <p><a href="/" role="button">Back to Form</a></p>
+    </article>
+  </main>
+</body>
+</html>

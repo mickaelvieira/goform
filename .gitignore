@@ -1,0 +1,43 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+
+# Example binaries - prevent accidental commits of built examples
+examples/basic/basic
+examples/custom/custom
+examples/file-input-demo/file-input-demo
+examples/http-request/http-request
+examples/http-request/http-request-example
+examples/struct-population/struct-population
+
+# Generic example binaries (catch any executable files in example directories)
+examples/*/main
+examples/*/example
+examples/*/demo
+examples/*-example
+examples/*/*-example
+# Catch executables without extensions in example directories
+examples/*/[!.]*
+!examples/*/*.go
+!examples/*/*.mod
+!examples/*/*.sum
+!examples/*/*.tmpl
+!examples/*/*.md
+!examples/*/*.yaml
+!examples/*/*.yml
+!examples/*/*.json

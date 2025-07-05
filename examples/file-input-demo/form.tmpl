@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>File Input Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.purple.min.css">
+    <style>
+      form fieldset div {
+        display: flex;
+        flex-direction: column;
+      }
+
+      form legend {
+        font-size: x-large;
+        font-weight: bold;
+      }
+
+      *[aria-invalid="false"]+span {
+        display: none;
+      }
+
+      *[aria-invalid="true"]+span {
+        display: inline-block;
+        color: red;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+    </style>
+    <script>
+      class Form {
+        form;
+
+        constructor(form) {
+          this.form = form;
+          this.form.noValidate = true;
+          this.form.addEventListener("submit", this.submitHandler);
+
+          for (const el of this.elements()) {
+            el.addEventListener("blur", this.blurHandler);
+            el.addEventListener("input", this.inputHandler);
+          }
+        }
+
+        elements = () => {
+          return Array.from(this.form.elements);
+        };
+
+        blurHandler = (event) => {
+          this.handleValidation(event.target);
+        };
+
+        inputHandler = (event) => {
+          this.handleValidation(event.target);
+        };
+
+        handleValidation = (el) => {
+          el.setAttribute("aria-invalid", el.checkValidity() ? "false" : "true");
+        };
+
+        validate = () => {
+          for (const el of this.elements()) {
+            this.handleValidation(el);
+          }
+        };
+
+        submitHandler = (event) => {
+          if (!this.form.checkValidity()) {
+            event.preventDefault();
+            this.validate();
+            return;
+          }
+        };
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("form");
+        if (form) {
+          new Form(form);
+        }
+      });
+    </script>
+</head>
+<body>
+  <main class="container">
+    <article class="component">
+      <h1>File Input Demo</h1>
+      {{ form .Form }}
+    </article>
+  </main>
+</body>
+</html>

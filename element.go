@@ -41,8 +41,14 @@ func isInputType(t string) bool {
 	return t != SelectElement && t != TextareaElement
 }
 
-func isMultiple(t string) bool {
-	return t == SelectElement || t == InputTypeRadio
+func isMultiple(e *element) bool {
+	// For select elements, check the template field
+	if e.template == SelectElement {
+		return true
+	}
+	// For input elements, check the type attribute
+	elementType := e.attributes.String("type")
+	return elementType == InputTypeRadio
 }
 
 func Phone(name string) *element {
@@ -162,6 +168,7 @@ type Element interface {
 	HintRenderer
 	ErrorRenderer
 	Name() string
+	Value() string
 	IsValid() bool
 	SetValue(string)
 	MarkAsInvalid()
@@ -303,7 +310,7 @@ func (e *element) Hint() string {
 
 func (e *element) SetOptions(options ...option) *element {
 	// prevent setting options on non select/radio elements
-	if !isMultiple(e.attributes.String("type")) {
+	if !isMultiple(e) {
 		return e
 	}
 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload Results</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.purple.min.css">
+    <style>
+      .result {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: var(--pico-background-color);
+        border: 1px solid var(--pico-border-color);
+        border-radius: var(--pico-border-radius);
+      }
+
+      .result h3 {
+        margin-top: 0;
+        color: var(--pico-primary);
+      }
+    </style>
+</head>
+<body>
+  <main class="container">
+    <article class="component">
+      <h1>Upload Results</h1>
+
+      <div class="result">
+        <h3>Avatar (Single File):</h3>
+        <p>{{.Avatar}}</p>
+      </div>
+
+      <div class="result">
+        <h3>Documents (Multiple Files):</h3>
+        <p>{{.Documents}}</p>
+      </div>
+
+      <div class="result">
+        <h3>Photos (Multiple Files):</h3>
+        <p>{{.Photos}}</p>
+      </div>
+
+      <p><a href="/" role="button">Back to Form</a></p>
+    </article>
+  </main>
+</body>
+</html>

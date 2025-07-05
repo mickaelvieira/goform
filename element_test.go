@@ -1,6 +1,7 @@
 package goform
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -490,4 +491,30 @@ func TestElementChaining(t *testing.T) {
 	if elem.attributes.String("class") != "form-control" {
 		t.Errorf("expected class=form-control, got %s", elem.attributes.String("class"))
 	}
+}
+
+func TestElement_MultipleFiles(t *testing.T) {
+	t.Run("create single file input", func(t *testing.T) {
+		elem := File("document")
+
+		html := string(elem.Render())
+		if strings.Contains(html, "multiple") {
+			t.Error("expected single file input HTML to not contain multiple attribute")
+		}
+		if !strings.Contains(html, `type="file"`) {
+			t.Error("expected single file input HTML to have file type")
+		}
+	})
+
+	t.Run("create multiple file input using SetAttributes", func(t *testing.T) {
+		elem := File("photos").SetAttributes(Attr("multiple", true))
+
+		html := string(elem.Render())
+		if !strings.Contains(html, "multiple") {
+			t.Error("expected multiple file input HTML to contain multiple attribute")
+		}
+		if !strings.Contains(html, `type="file"`) {
+			t.Error("expected multiple file input HTML to have file type")
+		}
+	})
 }
