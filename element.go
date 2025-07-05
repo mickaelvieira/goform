@@ -41,6 +41,10 @@ func isInputType(t string) bool {
 	return t != SelectElement && t != TextareaElement
 }
 
+func isMultiple(t string) bool {
+	return t == SelectElement || t == InputTypeRadio
+}
+
 func Phone(name string) *element {
 	return newElement(name, InputTypeTel)
 }
@@ -298,6 +302,11 @@ func (e *element) Hint() string {
 }
 
 func (e *element) SetOptions(options ...option) *element {
+	// prevent setting options on non select/radio elements
+	if !isMultiple(e.attributes.String("type")) {
+		return e
+	}
+
 	e.options = make([]option, len(options))
 	for i, opt := range options {
 		e.options[i] = option{
