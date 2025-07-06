@@ -495,7 +495,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("Failed to populate form from request: %v", err)
+		}
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -564,7 +567,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("Failed to populate form from request: %v", err)
+		}
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -632,7 +638,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("failed to populate form from request: %v", err)
+		}
 
 		// Check that the text elements were populated correctly
 		elements := form.Elements()
@@ -691,7 +700,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form first
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("failed to populate form from request: %v", err)
+		}
 
 		// Then validate separately
 		isValid, errors := form.IsValid()
@@ -749,7 +761,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("failed to populate form from request: %v", err)
+		}
 
 		// Check that the elements were populated correctly
 		elements := form.Elements()
@@ -828,7 +843,10 @@ func TestForm_PopulateFromRequest(t *testing.T) {
 		}
 
 		// Populate the form from the request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("failed to populate form from request: %v", err)
+		}
 
 		// Check that the element was populated correctly
 		elements := form.Elements()
@@ -1114,7 +1132,10 @@ func TestForm_Populate(t *testing.T) {
 		}
 
 		// Step 1: Populate from request
-		_ = form.PopulateFromRequest(req)
+		err := form.PopulateFromRequest(req)
+		if err != nil {
+			t.Fatalf("failed to populate form from request: %v", err)
+		}
 
 		// Step 2: Validate
 		isValid, errors := form.IsValid()
@@ -1145,6 +1166,55 @@ func TestForm_Populate(t *testing.T) {
 			if i < len(result.Documents) && result.Documents[i] != expected {
 				t.Errorf("expected Documents[%d]='%s', got '%s'", i, expected, result.Documents[i])
 			}
+		}
+	})
+}
+
+func TestForm_FunctionalOptions(t *testing.T) {
+	t.Run("default maxMemory configuration", func(t *testing.T) {
+		form := Form()
+
+		// Default should be 32 MB (32 << 20)
+		expectedMaxMemory := int64(32 << 20)
+		if form.options.maxMemory != expectedMaxMemory {
+			t.Errorf("expected default maxMemory to be %d, got %d", expectedMaxMemory, form.options.maxMemory)
+		}
+	})
+
+	t.Run("custom maxMemory configuration", func(t *testing.T) {
+		customMaxMemory := int64(64 << 20) // 64 MB
+		form := Form(WithMaxMemory(customMaxMemory))
+
+		if form.options.maxMemory != customMaxMemory {
+			t.Errorf("expected maxMemory to be %d, got %d", customMaxMemory, form.options.maxMemory)
+		}
+	})
+
+	t.Run("multiple options", func(t *testing.T) {
+		customMaxMemory := int64(128 << 20) // 128 MB
+		form := Form(
+			WithMaxMemory(customMaxMemory),
+			// Additional options can be added here in the future
+		)
+
+		if form.options.maxMemory != customMaxMemory {
+			t.Errorf("expected maxMemory to be %d, got %d", customMaxMemory, form.options.maxMemory)
+		}
+	})
+
+	t.Run("options override defaults", func(t *testing.T) {
+		// Test that options properly override defaults
+		smallMaxMemory := int64(1 << 20) // 1 MB
+		form := Form(WithMaxMemory(smallMaxMemory))
+
+		if form.options.maxMemory != smallMaxMemory {
+			t.Errorf("expected maxMemory to be %d, got %d", smallMaxMemory, form.options.maxMemory)
+		}
+
+		// Verify it's different from default
+		defaultForm := Form()
+		if form.options.maxMemory == defaultForm.options.maxMemory {
+			t.Error("expected configured maxMemory to be different from default")
 		}
 	})
 }

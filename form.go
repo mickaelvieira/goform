@@ -17,15 +17,40 @@ type Container interface {
 	Children() []Renderer
 }
 
+// FormOption defines a functional option for configuring forms
+type FormOption func(*formOptions)
+
+// formOptions holds configuration options for the form
+type formOptions struct {
+	maxMemory int64 // Maximum memory for multipart form parsing (in bytes)
+}
+
+// WithMaxMemory sets the maximum memory for multipart form parsing
+func WithMaxMemory(maxMemory int64) FormOption {
+	return func(options *formOptions) {
+		options.maxMemory = maxMemory
+	}
+}
+
 type form struct {
 	error      string
 	children   []Renderer
 	renderer   TemplateRenderer
 	attributes Attrs
+	options    formOptions
 }
 
-func Form() *form {
+func Form(modifiers ...FormOption) *form {
+	options := formOptions{
+		maxMemory: 32 << 20, // 32 MB default
+	}
+
+	for _, option := range modifiers {
+		option(&options)
+	}
+
 	f := &form{
+		options:  options,
 		children: make([]Renderer, 0),
 		renderer: getTemplateRenderer(),
 		attributes: Attributes(
@@ -111,7 +136,6 @@ func (f *form) PopulateFromStruct(obj any) *form {
 		}
 	}
 
-	// Mark invalid elements
 	for _, element := range elements {
 		if !element.IsValid() {
 			element.MarkAsInvalid()
@@ -121,20 +145,24 @@ func (f *form) PopulateFromStruct(obj any) *form {
 	return f
 }
 
-func (f *form) PopulateFromRequest(r *http.Request) *form {
-	// Parse form data - this handles both URL-encoded and multipart forms
+func (f *form) PopulateFromRequest(r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
-		return f
+		return fmt.Errorf("failed to parse form data: %w", err)
 	}
 
 	// Also parse multipart form if present (for file uploads)
 	if r.MultipartForm == nil {
-		_ = r.ParseMultipartForm(32 << 20) // 32 MB max memory, ignore errors as it's optional
+		if err := r.ParseMultipartForm(f.options.maxMemory); err != nil {
+			// Only return error if this is actually a multipart request
+			// Non-multipart requests will fail here, which is expected
+			if strings.Contains(r.Header.Get("Content-Type"), "multipart/") {
+				return fmt.Errorf("failed to parse multipart form data: %w", err)
+			}
+		}
 	}
 
 	elements := f.Elements()
 
-	// Iterate through all form values in the request
 	for name, values := range r.Form {
 		element, ok := elements[name]
 		if !ok {
@@ -148,7 +176,6 @@ func (f *form) PopulateFromRequest(r *http.Request) *form {
 		}
 	}
 
-	// Handle file uploads separately if multipart form exists
 	if r.MultipartForm != nil {
 		for name, files := range r.MultipartForm.File {
 			element, ok := elements[name]
@@ -156,33 +183,23 @@ func (f *form) PopulateFromRequest(r *http.Request) *form {
 				continue
 			}
 
-			// For file inputs, handle multiple files
-			if len(files) > 0 {
-				if len(files) == 1 {
-					// Single file: just set the filename
-					element.SetValue(files[0].Filename)
-				} else {
-					// Multiple files: concatenate filenames with comma separation
-					var filenames []string
-					for _, file := range files {
-						if file.Filename != "" {
-							filenames = append(filenames, file.Filename)
-						}
-					}
-					element.SetValue(strings.Join(filenames, ", "))
+			var filenames []string
+			for _, file := range files {
+				if file.Filename != "" {
+					filenames = append(filenames, file.Filename)
 				}
 			}
+			element.SetValue(strings.Join(filenames, ", "))
 		}
 	}
 
-	// Validate all elements after population
 	for _, element := range elements {
 		if !element.IsValid() {
 			element.MarkAsInvalid()
 		}
 	}
 
-	return f
+	return nil
 }
 
 func (f *form) IsValid() (bool, map[string]string) {
@@ -190,7 +207,6 @@ func (f *form) IsValid() (bool, map[string]string) {
 	errors := make(map[string]string)
 	isValid := true
 
-	// Collect validation errors from all elements
 	for name, element := range elements {
 		if !element.IsValid() {
 			errors[name] = "Invalid value"
@@ -242,25 +258,21 @@ func (f *form) Populate(obj any) *form {
 			continue
 		}
 
-		// Get the goform tag
 		tag := field.Tag.Get("goform")
 		if tag == "" {
 			continue
 		}
 
-		// Find the corresponding form element
 		element, ok := elements[tag]
 		if !ok {
 			continue
 		}
 
-		// Get the value from the form element
 		formValue := element.Value()
 		if formValue == "" {
 			continue
 		}
 
-		// Set the field value based on its type
 		switch fieldValue.Kind() {
 		case reflect.String:
 			fieldValue.SetString(formValue)
@@ -281,7 +293,6 @@ func (f *form) Populate(obj any) *form {
 					fieldValue.Set(reflect.ValueOf(cleanValues))
 				}
 			}
-		// Add more type handling as needed
 		default:
 			// For other types, try to set as string if the field type supports it
 			if fieldValue.Type().ConvertibleTo(reflect.TypeOf("")) {
