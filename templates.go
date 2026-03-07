@@ -139,14 +139,14 @@ func attributesRenderer() func(map[string]any) (template.HTMLAttr, error) {
 			switch value := value.(type) {
 			case bool:
 				if value {
-					s.WriteString(fmt.Sprintf("%s ", template.HTMLEscapeString(name)))
+					fmt.Fprintf(&s, "%s ", template.HTMLEscapeString(name))
 				}
 			case string:
 				if value != "" {
-					s.WriteString(fmt.Sprintf(`%s="%s" `, template.HTMLEscapeString(name), template.HTMLEscapeString(value)))
+					fmt.Fprintf(&s, `%s="%s" `, template.HTMLEscapeString(name), template.HTMLEscapeString(value))
 				}
 			default:
-				s.WriteString(fmt.Sprintf(`attribute %s has an unsupported data type %T, only boolean & string are allowed`, name, value))
+				fmt.Fprintf(&s, `attribute %s has an unsupported data type %T, only boolean & string are allowed`, name, value)
 			}
 		}
 		//nolint:gosec // G203
